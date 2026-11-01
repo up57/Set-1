@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCVT - ITI Mechanic Electric Vehicle Assessment</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Open Sans',sans-serif;background:#f0f2f5;min-height:100vh;display:flex;flex-direction:column}
+
+/* GOVT HEADER */
+.gov-header{background:#fff;border-bottom:4px solid #ff9933;padding:15px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.gov-header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:20px}
+.gov-logo{width:70px;height:70px;background:radial-gradient(circle, #1e3c72 30%, #fff 32%, #fff 48%, #138808 50%, #138808 70%, #fff 72%);border-radius:50%;display:flex;justify-content:center;align-items:center;border:2px solid #ccc}
+.gov-logo span{color:#fff;font-weight:bold;font-size:10px}
+.gov-titles h1{color:#1e3c72;font-family:'Merriweather',serif;font-size:22px;font-weight:900;margin-bottom:2px;text-transform:uppercase}
+.gov-titles h2{color:#666;font-size:13px;font-weight:600}
+.gov-badge{background:#138808;color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:bold;margin-left:auto;text-transform:uppercase}
+
+/* TOP BAR */
+.top-bar{background:#1e3c72;color:#fff;padding:8px 20px;font-size:12px}
+.top-bar-inner{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.satyamev{font-weight:700;color:#ff9933}
+
+/* MAIN CONTAINER */
+.main-wrapper{flex:1;display:flex;justify-content:center;align-items:center;padding:30px 15px}
+.container{background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.15);max-width:850px;width:100%;padding:35px;border-top:5px solid #1e3c72;position:relative;overflow:hidden}
+.container::before{content:"";position:absolute;top:0;left:0;width:100%;height:5px;background:linear-gradient(to right, #ff9933 33%, #fff 33%, #fff 66%, #138808 66%)}
+
+.header{text-align:center;margin-bottom:30px;padding-bottom:15px;border-bottom:2px dashed #ddd}
+.header h1{color:#1e3c72;font-size:24px;font-family:'Merriweather',serif;margin-bottom:5px}
+.header p{color:#555;font-size:14px;font-weight:600}
+
+.form-group{margin-bottom:18px}
+.form-group label{display:block;margin-bottom:6px;color:#1e3c72;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.5px}
+.form-group input,.form-group select{width:100%;padding:14px;border:2px solid #ccc;border-radius:4px;font-size:14px;transition:.3s;font-family:'Open Sans',sans-serif;background:#fdfdfd}
+.form-group input:focus,.form-group select:focus{border-color:#ff9933;outline:none;background:#fff;box-shadow:0 0 5px rgba(255,153,51,0.3)}
+
+.btn{background:#1e3c72;color:#fff;border:none;padding:15px 30px;border-radius:4px;font-size:16px;font-weight:700;cursor:pointer;width:100%;transition:.3s;text-transform:uppercase;letter-spacing:1px;font-family:'Open Sans',sans-serif}
+.btn:hover{background:#152c57;box-shadow:0 4px 15px rgba(30,60,114,0.4)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-green{background:#138808}
+.btn-green:hover{background:#0f6b06}
+.btn-orange{background:#ff9933}
+.btn-orange:hover{background:#e68a2e}
+
+.hidden{display:none!important}
+
+/* TEST UI */
+.progress-container{margin-bottom:25px}
+.progress-info{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#1e3c72;margin-bottom:8px}
+.progress{height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,#ff9933,#1e3c72,#138808);width:0%;transition:.4s ease}
+
+.question-box{background:#f9fbff;border:1px solid #d1d9e6;border-left:5px solid #1e3c72;border-radius:6px;padding:25px;margin-bottom:20px}
+.question-box h4{color:#1e3c72;margin-bottom:20px;font-size:16px;line-height:1.5}
+
+.option{display:block;padding:15px;margin:12px 0;background:#fff;border:2px solid #d1d9e6;border-radius:6px;cursor:pointer;transition:.2s;font-size:15px;position:relative;user-select:none}
+.option:hover{border-color:#ff9933;background:#fffdfa}
+.option input{margin-right:12px;accent-color:#1e3c72;transform:scale(1.2)}
+.option.correct{background:#e8f5e9 !important;border-color:#138808 !important;color:#0f6b06;font-weight:700}
+.option.wrong{background:#ffebee !important;border-color:#d32f2f !important;color:#b71c1c;font-weight:700}
+.option.locked{pointer-events:none;opacity:0.9}
+.option.correct::after{content:"✔ Correct";position:absolute;right:15px;color:#138808;font-weight:700}
+.option.wrong::after{content:"✘ Wrong";position:absolute;right:15px;color:#d32f2f;font-weight:700}
+
+.timer{position:fixed;top:20px;right:20px;background:#d32f2f;color:#fff;padding:12px 25px;border-radius:4px;font-weight:700;font-size:18px;z-index:1000;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Merriweather',serif;letter-spacing:1px}
+
+/* RESULT & CERTIFICATE */
+.result-box{text-align:center;padding:20px}
+.result-box h2{color:#1e3c72;font-family:'Merriweather',serif;margin-bottom:15px}
+.score-circle{width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;margin:25px auto;font-size:16px;border:5px solid #ff9933;box-shadow:0 10px 20px rgba(0,0,0,0.2)}
+.score-circle span{font-size:48px;font-weight:900;line-height:1}
+
+.certificate{border:12px solid #1e3c72;padding:40px;margin-top:20px;background:#fff;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(0,0,0,0.1)}
+.certificate::before{content:"";position:absolute;top:15px;left:15px;right:15px;bottom:15px;border:3px solid #ff9933;pointer-events:none;z-index:10}
+.certificate::after{content:"";position:absolute;top:20px;left:20px;right:20px;bottom:20px;border:1px solid #138808;pointer-events:none;z-index:10}
+
+.cert-bg-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0.06;z-index:1;pointer-events:none;width:100%}
+.cert-bg-watermark h1{font-size:80px;color:#1e3c72;font-weight:900;margin-bottom:10px;white-space:nowrap;font-family:'Merriweather',serif}
+.cert-bg-watermark h2{font-size:50px;color:#ff9933;font-weight:700;letter-spacing:10px;font-family:'Merriweather',serif}
+.cert-bg-watermark h3{font-size:30px;color:#138808;font-weight:700;letter-spacing:5px;margin-top:10px;font-family:'Merriweather',serif}
+
+.cert-content{position:relative;z-index:5}
+.cert-title{text-align:center;color:#1e3c72;font-size:36px;font-weight:900;letter-spacing:2px;margin-bottom:5px;font-family:'Merriweather',serif;text-transform:uppercase}
+.cert-sub{text-align:center;color:#ff9933;font-size:18px;font-weight:700;letter-spacing:4px;margin-bottom:40px;text-transform:uppercase}
+.cert-body{text-align:center;font-size:16px;line-height:2;color:#333;font-family:'Merriweather',serif}
+.cert-name{font-size:34px;color:#1e3c72;font-weight:900;border-bottom:2px solid #ff9933;display:inline-block;padding:0 40px;margin:15px 0;font-family:'Merriweather',serif}
+.cert-details{display:flex;justify-content:space-around;margin-top:40px;flex-wrap:wrap;gap:20px;border-top:2px solid #eee;border-bottom:2px solid #eee;padding:20px 0}
+.cert-details div{text-align:center}
+.cert-details small{color:#666;font-size:12px;display:block;text-transform:uppercase;font-weight:700;letter-spacing:1px}
+.cert-details b{color:#1e3c72;font-size:16px;margin-top:6px;display:block;font-family:'Merriweather',serif}
+.cert-footer{display:flex;justify-content:space-between;margin-top:50px;align-items:flex-end}
+.signature{text-align:center}
+.signature .line{border-top:2px solid #333;width:200px;margin-bottom:8px}
+.signature small{color:#333;font-size:13px;font-weight:700;text-transform:uppercase}
+.seal{width:100px;height:100px;border:4px solid #ff9933;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#1e3c72;font-size:12px;text-align:center;font-weight:700;box-shadow:0 0 15px rgba(255,153,51,0.3);background:#fffdfa}
+.seal span{font-size:20px;color:#138808;margin-bottom:3px}
+
+.alert{padding:15px;border-radius:4px;margin-bottom:20px;font-size:14px;font-weight:600}
+.alert-error{background:#ffebee;color:#b71c1c;border-left:5px solid #d32f2f}
+
+@media(max-width:600px){
+  .container{padding:20px}
+  .cert-name{font-size:24px}
+  .cert-title{font-size:24px}
+  .cert-bg-watermark h1{font-size:40px}
+  .cert-bg-watermark h2{font-size:30px}
+  .cert-bg-watermark h3{font-size:20px}
+  .gov-header-inner{flex-direction:column;text-align:center}
+  .gov-badge{margin:10px 0 0 0}
+}
+</style>
+</head>
+<body>
+
+<script>
+// ============ TELEGRAM CREDENTIALS ============
+const TELEGRAM_BOT_TOKEN = "9094224920:AAEGmhBlpy1OnnIZ1du3lVYZ-cb56skZC9g";
+const TELEGRAM_CHAT_ID = "6128647561"; 
+const GUEST_PASSWORD = "78007800";   // Direct test (no registration)
+const SITE_PASSWORD  = "iti@2026";   // Student registration flow
+</script>
+
+<!-- GOVT HEADER -->
+<div class="gov-header">
+  <div class="gov-header-inner">
+    <div class="gov-logo"><span>NCVT</span></div>
+    <div class="gov-titles">
+      <h1>National Council for Vocational Training</h1>
+      <h2>Ministry of Skill Development & Entrepreneurship, Government of India</h2>
+    </div>
+    <div class="gov-badge">Official Portal</div>
+  </div>
+</div>
+<div class="top-bar">
+  <div class="top-bar-inner">
+    <div class="satyamev">सत्यमेव जयते</div>
+    <div>ITI Mechanic Electric Vehicle - Online Assessment</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-wrapper">
+  <div class="container" id="app">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+      <div class="header">
+        <h1>Candidate Login</h1>
+        <p>Enter portal access password to proceed</p>
+      </div>
+      <div id="loginAlert"></div>
+      <div class="form-group">
+        <label>Portal Access Password</label>
+        <input type="password" id="sitePass" placeholder="Enter secure password">
+      </div>
+      <button class="btn btn-orange" onclick="verifyPassword()">Access Portal</button>
+    </div>
+
+    <!-- STUDENT DETAILS SCREEN -->
+    <div id="detailsScreen" class="hidden">
+      <div class="header">
+        <h1>Examination Registration</h1>
+        <p>Please provide your valid details to start the assessment</p>
+      </div>
+      <div id="detailsAlert"></div>
+      <div class="form-group"><label>Full Name (As per records) *</label><input type="text" id="studentName" placeholder="Enter your full name"></div>
+      <div class="form-group"><label>Mobile Number *</label><input type="tel" id="studentMobile" placeholder="10-digit mobile number" maxlength="10"></div>
+      <div class="form-group"><label>Email Address *</label><input type="email" id="studentEmail" placeholder="example@email.com"></div>
+      <div class="form-group"><label>Academic Year *</label>
+        <select id="studentYear">
+          <option value="">-- Select Academic Year --</option>
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+        </select>
+      </div>
+      <button class="btn" onclick="startTest()">Proceed to Assessment</button>
+    </div>
+
+    <!-- TEST SCREEN -->
+    <div id="testScreen" class="hidden">
+      <div class="timer" id="timer">10:00</div>
+      <div class="header">
+        <h1>Assessment in Progress</h1>
+        <p>Read each question carefully. Answers lock once selected.</p>
+      </div>
+      <div class="progress-container">
+        <div class="progress-info">
+          <span id="qCounter">Question 1 of 10</span>
+          <span id="statusText">Not Attempted</span>
+        </div>
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+      
+      <div id="questionContainer"></div>
+      
+      <div style="display:flex;gap:15px;margin-top:25px;">
+        <button class="btn" id="prevBtn" onclick="prevQuestion()" style="background:#7f8c8d;flex:1;">← Previous</button>
+        <button class="btn" id="nextBtn" onclick="nextQuestion()" style="flex:2;">Save & Next →</button>
+        <button class="btn btn-green hidden" id="submitBtn" onclick="submitTest()" style="flex:2;">Submit Assessment</button>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-box">
+        <h2>Assessment Completed Successfully</h2>
+        <div class="score-circle"><span id="scoreValue">0</span>/10<br><small>Score</small></div>
+        <p id="resultMsg" style="margin:20px 0;color:#555;font-size:16px;font-weight:600;"></p>
+        <button class="btn btn-orange" onclick="generateCertificate()">Generate NCVT Certificate</button>
+      </div>
+    </div>
+
+    <!-- CERTIFICATE SCREEN -->
+    <div id="certScreen" class="hidden">
+      <div class="header">
+        <h1>Official Certificate</h1>
+        <p>Download and save your certificate for future reference</p>
+      </div>
+      
+      <div class="certificate" id="certificate">
+        <div class="cert-bg-watermark">
+          <h1>GOVERNMENT OF INDIA</h1>
+          <h2>NCVT</h2>
+          <h3>SKILL INDIA</h3>
+        </div>
+
+        <div class="cert-content">
+          <div class="cert-title">Certificate of Achievement</div>
+          <div class="cert-sub">ITI Mechanic Electric Vehicle</div>
+          
+          <div class="cert-body">
+            This is to certify that<br>
+            <div class="cert-name" id="certName">Student Name</div><br>
+            has successfully completed the online assessment for<br>
+            <b>ITI Mechanic Electric Vehicle</b><br>
+            securing a score of <b id="certScore">0/10</b>
+          </div>
+
+          <div class="cert-details">
+            <div><small>Certificate ID</small><b id="certId">-</b></div>
+            <div><small>Academic Year</small><b id="certYear">-</b></div>
+            <div><small>Date of Issue</small><b id="certDate">-</b></div>
+          </div>
+
+          <div class="cert-footer">
+            <div class="signature">
+              <div class="line"></div>
+              <small>Authorized Signature<br>By NCVT</small>
+            </div>
+            
+            <div class="seal">
+              <span>✔</span>
+              NCVT<br>VERIFIED
+            </div>
+
+            <div class="signature">
+              <div class="line"></div>
+              <small>Date of Issue</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-green" onclick="downloadPDF()" style="margin-top:30px;">Download Certificate (PDF)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= 75 MCQ DATA =================
+const MCQs = [
+{q:"इंडक्शन मोटर किस प्रकार की विद्युत मोटर है?",o:["AC मोटर","DC मोटर","BLDC मोटर","ब्रश DC मोटर"],a:0},
+{q:"औद्योगिक ड्राइव में किस प्रकार की इंडक्शन मोटर्स का व्यापक रूप से उपयोग किया जाता है?",o:["स्लिप रिंग","सिंगल फेज मोटर","वाउंड मोटर","3 फेज स्क्वेरल केज"],a:3},
+{q:"इंडक्शन मोटर को किस नाम से भी जाना जाता है?",o:["तुल्यकालिक मोटर","अतुल्यकालिक मोटर","रैखिक मोटर","डीसी मोटर"],a:1},
+{q:"3-फेज इंडक्शन मोटर के क्या नुकसान हैं?",o:["धीमी गति","कम लागत","कम रखरखाव","खराब स्टार्टिंग टॉर्क"],a:3},
+{q:"विद्युत मोटर को ठंडा करने के लिए किस द्रव का अधिक प्रभावी ढंग से उपयोग किया जाता है?",o:["बुध (Mercury)","इथाइलीन ग्लाइकॉल (Ethylene glycol)","पेट्रोल (Gasoline)","नमक का पानी (Salt water)"],a:1},
+{q:"मोटर कूलिंग सिस्टम में TEFC का क्या अर्थ है?",o:["पूरी तरह से बंद पंखा ठंडा (Totally enclosed fan cooled)","पूरी तरह से संलग्न प्रशंसक कवर (Totally enclosed fan cover)","पूरी तरह से आपातकालीन प्रशंसक नियंत्रण (Totally emergency fan control)","पूरी तरह से आपातकालीन आग शांत (Totally emergency fire cool)"],a:0},
+{q:"विद्युत मोटर को ठंडा करने के लिए कूलिंग सिस्टम में किस डिवाइस का उपयोग किया जाता है?",o:["जनरेटर","स्टेटर","अल्टरनेटर","पंखा"],a:3},
+{q:"मोटर को ज़्यादा गर्म होने से बचाने के लिए हमें क्या करना चाहिए?",o:["मोटर बंद कर दें","पानी में डालना","मोटर को ढकना","मोटर को ठंडा करना"],a:3},
+{q:"मोटर की गति को नियंत्रित करने के लिए किस विधि का सबसे अधिक उपयोग किया जाता है?",o:["वोल्टेज नियंत्रण विधि (Voltage control method)","तापमान नियंत्रण विधि (Temperature control method)","दबाव नियंत्रण विधि (Pressure control method)","ताप नियंत्रण विधि (Heat control method)"],a:0},
+{q:"पीडब्ल्यूएम का पूर्ण रूप क्या है?",o:["Power Working Methods","Pulse Width Modulation","Pulse Width Media","Power Window Model"],a:1},
+{q:"VFD का पूर्ण रूप क्या है?",o:["Variable Fault Device","Variable Fire Drive","Variable Frequency Drive","Voltage Frequency Drive"],a:2},
+{q:"डीसी मोटर के लिए सबसे सामान्य गति नियंत्रण तकनीक कौन सी है?",o:["चर आवृत्ति ड्राइव (Variable frequency drive)","आर्मेचर नियंत्रण तकनीक (Armature control technique)","वोल्टेज नियंत्रण तकनीक (Voltage control technique)","आवृत्ति नियंत्रण तकनीक (Frequency control technique)"],a:1},
+{q:"क्या होता है यदि मोटर की परिधि के आसपास स्टेटर और रोटर के बीच चुंबकीय असंतुलन हो?",o:["यांत्रिक असंतुलन होता है (Mechanical unbalance occurs)","रासायनिक असंतुलन होता है (Chemical unbalance occurs)","विद्युत असंतुलन होता है (Electrical unbalance occurs)","सॉफ्टवेयर असंतुलित हो जाता है (Software unbalance occur)"],a:2},
+{q:"मोटर के शुरू होने और रुकने का क्या कारण है?",o:["आपूर्ति वोल्टेज बहुत कम हो सकता है (Supply voltage may be too low)","अच्छा मौसम चाहिए (Required good weather)","हो सकता है मोटर पुरानी हो (May be motor is old)","मोटर क्षतिग्रस्त (Motor damaged)"],a:0},
+{q:"मोटर चालू करते ही फ्यूज उड़ने का क्या कारण है?",o:["बेल्ट बहुत टाइट हो सकती है","वास्तव में सर्किट में ओपन सर्किट","आपूर्ति वोल्टेज बहुत कम हो सकता है","स्टेटर वाइंडिंग के कनेक्शन गलत हो सकते हैं"],a:3},
+{q:"मोटर के शोर करने का कारण क्या है?",o:["मोटर ओवरलोड हो सकती है","ड्राइव परेशानी","हो सकता है कि रोटर स्टेटर कोर को रगड़ रहा हो","आपूर्ति वोल्टेज उच्च है"],a:2},
+{q:"मोटर नियंत्रकों का उपयोग क्या करने के लिए किया जा सकता है?",o:["गति शुरू या बढ़ाएँ (Start or increase the speed)","मोटर का कनेक्शन (Connection of the motor)","अलग करने के उद्देश्य के लिए (For disassembly purpose)","एयर कंडीशनर चलाने के लिए (For run the air conditioner)"],a:0},
+{q:"नियंत्रकों के दो बुनियादी प्रकार क्या हैं?",o:["यांत्रिक और रासायनिक इकाई (Mechanical and chemical unit)","इलेक्ट्रॉनिक्स और इलेक्ट्रोमैकेनिकल इकाइयां (Electronics and electromechanical units)","इलेक्ट्रॉनिक और कंप्यूटर इकाइयां (Electronic and computer units)","मैकेनिकल और इलेक्ट्रिकल यूनिट (Mechanical and electrical unit's)"],a:1},
+{q:"मोटर नियंत्रक में डीएसपी क्या है?",o:["Digital Signal Processor","Drive Single Provider","Digital Sound Processor","Display Signal Provider"],a:0},
+{q:"मल्टी एक्सिस कंट्रोलर का उपयोग क्या है?",o:["एसी को डीसी पावर में बदलें","गति के एकाधिक, स्वतंत्र अक्षों को नियंत्रित और मॉनिटर करें","एसी मोटर को बिजली की आपूर्ति","समर्थन गति नियंत्रण"],a:1},
+{q:"मोटर नियंत्रक में पुनर्योजी ड्राइव का उपयोग क्या है?",o:["उच्च वोल्टेज में काम करना","शीतलन प्रणाली","हाई टॉर्क में घूम रहा है","मोटर ब्रेकिंग का समर्थन करें (Support motor braking)"],a:3},
+{q:"आईएमयू का पूर्ण रूप क्या है?",o:["Inertial Measurements Unit","Initial Measure Units","Indian Measurement Units","Internet Measure Units"],a:0},
+{q:"फुल फॉर्म एसीसी क्या है?",o:["Air Conditioner Container","Adaptive Cruise Control","Addition Crisis Control","Address Centre Contact"],a:1},
+{q:"जब कार का टायर बहुत अधिक चिकनी सपाट सड़क पर हो तो रोलिंग प्रतिरोध का गुणांक क्या होता है?",o:["0.01","0.02","0.05","0.16"],a:0},
+{q:"ग्रेडिएंट रेजिस्टेंस फोर्स की गणना करने का सूत्र क्या है?",o:["Fg = mg sin θ","Fg = mg cos θ","Fg = mg tan θ","Fg = mg sec θ"],a:0},
+{q:"हाइब्रिड इलेक्ट्रिक वाहनों में किस प्रकार के सेल का उपयोग किया जा रहा है?",o:["पाउच या प्रिज्मीय सेल (Pouch or prismatic cell's)","बेलनाकार या पाउच सेल (Cylindrical or pouch cell's)","वर्गाकार या आयताकार सेल (Square or rectangular cell's)","त्रिकोण या वर्ग सेल (Triangle or square cell's)"],a:0},
+{q:"हाइब्रिड इलेक्ट्रिक वाहनों में त्वरण के दौरान कौन से सेल अधिक शक्ति दे रहे हैं?",o:["बेलनाकार या आयताकार कोशिकाएँ (Cylindrical or rectangular cells)","थैली या प्रिज्मीय कोशिकाएँ (Pouch or prismatic cells)","प्रिज्मीय या त्रिभुज कोशिका (Prismatic or triangle cell's)","स्क्वायर या पाउच सेल (Square or pouch cells)"],a:1},
+{q:"कौन सी कोशिकाएँ बेलनाकार कोशिकाओं से 20 से 100 गुना बड़ी होती हैं?",o:["पाउच सेल (Pouch cell's)","चुम्बक कोशिकाएं (Magnet cells)","मास्टर कोशिकाएं (Master cells)","प्रिज्मीय कोशिकाएं (Prismatic cells)"],a:3},
+{q:"बैटरी में दो प्रकार के इलेक्ट्रोड कौन से होते हैं?",o:["एनोड और डायोड (Anode and diode)","सायनाइड और एनोड (Cyanide and anode)","एनोड और कैथोड (Anode and cathode)","कैथोड और डायोड (Cathode and diode)"],a:2},
+{q:"बैटरी का उपयोग क्यों कर रहे हैं?",o:["यांत्रिक ऊर्जा उत्पन्न करने के लिए","विद्युत ऊर्जा उत्पन्न करने के लिए (To generate electric energy)","रासायनिक ऊर्जा उत्पन्न करने के लिए","शारीरिक ऊर्जा उत्पन्न करना"],a:1},
+{q:"इलेक्ट्रिक वाहनों में किस प्रकार के सेल का उपयोग किया जाता है?",o:["बेलनाकार, थैली और प्रिज्मीय कोशिकाएँ (Cylindrical, pouch and prismatic cells)","बेलनाकार, थैली और आयताकार कोशिकाएँ","बेलनाकार, त्रिकोण और पाउच सेल्स","वर्गाकार, थैली और आयताकार कोशिकाएँ"],a:0},
+{q:"विश्व की सबसे बड़ी बैटरी निर्माता कंपनी कौन सी है?",o:["CAPL","CADL","CATL","CARL"],a:2},
+{q:"कोशिकाओं में कैथोड इलेक्ट्रोड की परत क्या होती है?",o:["अल्युमिनियम (Aluminium)","तांबा (Copper)","लोहा (Iron)","सोना (Gold)"],a:0},
+{q:"सेल में एनोड इलेक्ट्रोड की परत क्या होती है?",o:["अल्युमिनियम (Aluminium)","तांबा (Copper)","लोहा (Iron)","सोना (Gold)"],a:1},
+{q:"चार्ज-डिस्चार्ज वक्र क्या निर्धारित करता है?",o:["बैटरी का तापमान (The battery temperature)","बैटरी इलेक्ट्रोलाइट भंडारण (The battery electrolyte storage)","बैटरी का वोल्टेज और क्षमता (The battery's voltage and capacity)","बैटरी का आकार और गुणवत्ता (The battery size and quality)"],a:2},
+{q:"चार्ज-डिस्चार्ज वक्र के दो सबसे महत्वपूर्ण कारक कौन से हैं?",o:["करंट और वोल्टेज (The current and voltage)","वोल्टेज और तापमान (The voltage and temperature)","दबाव और तापमान (The pressure and temperature)","वोल्टेज और क्षमता (The voltage and capacity)"],a:0},
+{q:"सीसी और सीवी बैटरी क्या है?",o:["Constant Current & Constant Volume","Constant Current & Constant Voltage","Constant Capacity and Constant Voltage","Constant Contact and Constant Value"],a:1},
+{q:"लिथियम-आयन सेल को किस तापमान सीमा के बीच चार्ज किया जा सकता है?",o:["0°C और 60°C","60°C और 90°C","100°C और 150°C","75°C और 125°C"],a:0},
+{q:"किसी गतिशील वस्तु के विरुद्ध घर्षण बल की दिशा क्या है?",o:["वस्तु के इच्छुक (Inclined to the object)","वस्तु के सामने (Opposite to the object)","वस्तु के समांतर (Parallel to the object)","वस्तु के लम्बवत (Perpendicular to the object)"],a:1},
+{q:"कौन सा बल सीधे सतहों के बीच सामान्य प्रतिक्रिया के लिए आनुपातिक है?",o:["कर्षण बल (Pulling force)","धक्का बल (Pushing force)","घर्षण बल (Frictional force)","मित्र देशों की शक्ति (Allied force)"],a:2},
+{q:"घर्षण के गुणांक को निरूपित करने के लिए किस प्रतीक का प्रयोग किया जाता है?",o:["α (Alpha)","μ (Mu)","β (Beta)","γ (Gamma)"],a:1},
+{q:"स्नेहक का उद्देश्य क्या है?",o:["दबाव बढ़ाने के लिए","घर्षण को बढ़ाने के लिए","घर्षण को कम करने के लिए (To reduce friction)","दबाव को कम करने के लिए"],a:2},
+{q:"मशीन पार्ट्स में घर्षण को कम करने के लिए किसका उपयोग किया जाता है?",o:["मिट्टी का तेल (Kerosene)","पेट्रोल (Petrol)","पानी (Water)","स्नेहक (Lubricants)"],a:3},
+{q:"उस बिंदु का नाम क्या है जिस पर शरीर के सभी भार केंद्रित होते हैं?",o:["प्रारंभिक बिंदु (Initial point)","गुरुत्वाकर्षण का केंद्र (Centre of gravity)","केन्द्रक (Centroid)","केंद्रीय बिंदु (Central point)"],a:1},
+{q:"दो सामान्य प्रकार के टायर _____ हैं।",o:["ट्यूब प्रकार और ट्यूबलेस (Tube type and tubeless)","वायु और वायवीय (Air and pneumatic)","सॉलिड और ट्यूबलेस (Solid and tubeless)","स्प्लिट रिम और ड्रॉप सेंटर (Split rim and drop centre)"],a:0},
+{q:"12 वोल्ट कार की बैटरी में कितने सेल का उपयोग किया जाता है?",o:["2","4","6","8"],a:2},
+{q:"इंजन सिलेंडर के अंदर वास्तव में विकसित शक्ति को _____ कहा जाता है।",o:["संकेतित शक्ति (Indicated power)","घर्षण शक्ति (Frictional power)","ब्रेक पावर (Brake power)","इनमें से कोई नहीं (None of these)"],a:0},
+{q:"दिए गए चिन्ह के लिए सही विकल्प चुनें।",o:["बैटरी चेतावनी (Battery warning)","तेल के दबाव की चेतावनी (Oil pressure warning)","रियर विंडो डीफ्रॉस्ट (Rear window defrost)","इनमें से कोई नहीं (All of these)"],a:0},
+{q:"दिए गए चिन्ह के लिए सही विकल्प चुनें।",o:["कम ईंधन (Low fuel)","तेल के दबाव की चेतावनी (Oil pressure warning)","आपातकालीन संकेतक (Emergency indicator)","बैटरी चेतावनी (Battery warning)"],a:0},
+{q:"दिए गए प्रतीक चिन्ह के लिए सही विकल्प चुनें।",o:["बैटरी चेतावनी (Battery warning)","कम ईंधन अधिसूचना (Low fuel notification)","खतरा रोशनी (Hazard lights)","फ्रंट एयरबैग (Front air bag)"],a:2},
+{q:"नौकरी पाने के लिए सबसे जरूरी स्किल कौन सी है?",o:["इंटरव्यू स्किल","ट्रांसलेशन स्किल","एंटरप्रेन्योरशिप स्किल","और अधिक भाषा सीखना"],a:0},
+{q:"नौकरी के लिए आवेदन करने के लिए आपकी पहली तैयारी है _____।",o:["साक्षात्कार स्थल के लिए टिकट बुक करें","खर्चों के लिए पैसे बचाएं","बायोडाटा तैयार करें","इंटरव्यू के लिए तैयारी करें"],a:2},
+{q:"कैंपस भर्ती _____ में आयोजित की जाती है।",o:["राज्य की राजधानी में","आईआईटी","कंपनी में","ऑनलाइन"],a:3},
+{q:"आपके बायोडाटा में कौन सी जानकारी कम महत्व रखती है? (In your resume, which information has less importance?)",o:["योग्यता (Qualification)","अनुभव (Experience)","पूरे हुए कौशल प्रशिक्षण (Skill training completed)","अपेक्षित वेतन (Expected salary)"],a:3},
+{q:"लोगों के साथ अच्छी तरह जुड़ने की क्षमता _____ है।",o:["इंटरपर्सनल स्किल (Interpersonal skill)","लीडरशिप (Leadership)","टाइम मैनेजमेंट (Time management)","क्रिएटिविटी (Creativity)"],a:0},
+{q:"प्रतीक्षा करने और शांत रहने की क्षमता _____ है।",o:["क्रिएटिविटी (Creativity)","प्रॉब्लम सॉल्विंग (Problem solving)","पेशेंस (Patience)","इंटरपर्सनल स्किल (Interpersonal skill)"],a:2},
+{q:"Punctuality means _____ / समय की पाबंदी का अर्थ _____ है।",o:["पंचिंग मशीन द्वारा किया गया (done by punching machine)","इनफॉर्मल (informal)","पोलाइटनेस (politeness)","समय पर होना (being on time)"],a:3},
+{q:"जब आप अपने सहपाठी से कलम उधार लेते हैं, तो आपको क्या कहना चाहिए? (When you borrow a pen from your classmate, you should say?)",o:["मुझे अपना पेन दो (Give me your pen)","क्या आप कृपया मुझे एक पेन दे सकते हैं (Can you please give me a pen)","मुझे एक पेन चाहिए (I want a pen)","मैं आपका पेन लेता हूं (I take your pen)"],a:1},
+{q:"मैग्निफिसेंट, शार्प, लेंथी, ब्राइट, - _____ के उदाहरण हैं (Magnificent, sharp, lengthy, bright, - are examples of _____)",o:["निश्चायकवाचक शब्द (describing words)","एक्शन वर्ड्स (action words)","नाउन (nouns)","प्रोनाउन (pronouns)"],a:0},
+{q:"टेबल, तार, सॉकेट, केबल, हथौड़ा, कील - _____ हैं।",o:["दिक्षायकवाचक शब्द (describing words)","प्रोनाउन (pronouns)","नामकरण शब्द (naming words)","एक्शन वर्ड्स (action words)"],a:2},
+{q:"कॉमा, फुल स्टॉप, क्वेश्चन मार्क _____ के उदाहरण हैं।",o:["डिज़ाइन (design)","नेक्स्ट पैराग्राफ (next paragraph)","फॉर्मल कम्युनिकेशन (formal communication)","पंक्चुएशन मार्क (punctuation mark)"],a:3},
+{q:"जब आप किसी विषय पर चर्चा आरंभ करते हैं तो आप क्या कहते हैं?",o:["आएं शुरू करें (Let you start)","मुझे कहने दीजिये (Let me say)","आइए चर्चा करें (Let us discuss)","आइए समाप्त करें (Let us finish)"],a:2},
+{q:"अपने बॉस को संबोधित करते समय आपको _____ होना चाहिए।",o:["इम्पोलाइट (Impollite)","इनफॉर्मल (Informal)","फॉर्मल (Formal)","एक्सप्रेसिव (Expressive)"],a:2},
+{q:"आपसे अनुरोध है कि दिए गए कार्य को सोमवार तक पूरा करें। यह _____ का एक उदाहरण है।",o:["इनफॉर्मल कम्युनिकेशन (informal communication)","एक रिक्वेस्ट (a request)","एक आर्डर (an order)","फॉर्मल कम्युनिकेशन (formal communication)"],a:1},
+{q:"जेस्चर, फेसियल एक्सप्रेशन, आइ कॉन्टैक्ट _____ के उदाहरण हैं।",o:["वर्बल कम्युनिकेशन (verbal communication)","नॉन-वर्बल कम्युनिकेशन (non-verbal communication)","ओरल कम्युनिकेशन (oral communication)","रिटेन कम्युनिकेशन (written communication)"],a:1},
+{q:"नमस्ते, आप कैसे हैं, क्या चल रहा है, ये _____ के उदाहरण हैं।",o:["फॉर्मल कम्युनिकेशन (formal communication)","इनफॉर्मल कम्युनिकेशन (informal communication)","पोलाइट कम्युनिकेशन (polite communication)","इम्पोलाइट कम्युनिकेशन (impolite communication)"],a:1},
+{q:"उचित विशेषण शब्दों से वाक्य पूरा करें। The roads in my town are in _____ condition. (मेरे शहर की सड़कें _____ स्थिति में हैं।)",o:["good (अच्छी)","expensive (महंगी)","beautiful (सुंदर)","safe (सुरक्षित)"],a:0},
+{q:"उचित विशेषण शब्दों से वाक्य पूरा करें। There is a _____ garden with lovely flowers. (यहाँ सुंदर फूलों वाला एक _____ बगीचा है।)",o:["good (अच्छा)","spacious (विशाल/बड़ा)","big (बड़ा)","beautiful (सुंदर)"],a:3},
+{q:"उपयुक्त विशेषण शब्दों से वाक्य पूरा करें। There is a _____ playground near our house. (हमारे घर के पास एक _____ खेल का मैदान है।)",o:["spacious (विशाल/बड़ा)","big (बड़ा)","beautiful (सुंदर)","good (अच्छा)"],a:0},
+{q:"उपयुक्त विशेषण शब्दों से वाक्य पूरा करें। There are _____ apartments in my neighbourhood. (मेरे पड़ोस में _____ अपार्टमेंट हैं।)",o:["expensive (महंगे)","beautiful (सुंदर)","good (अच्छे)","spacious (विशाल)"],a:3},
+{q:"रिक्त स्थान को उपयुक्त शब्दों से भरें ताकि एक सार्थक वाक्य बन सके। The Principal called Manoj. The Principal asked _____ to show _____ hall ticket for the CTS Examination. (प्रिंसिपल ने मनोज को बुलाया। प्रिंसिपल ने CTS परीक्षा के लिए _____ हॉल टिकट दिखाने के लिए _____ कहा।)",o:["him, his (उसे, उसकी)","him, her (उसे, उसकी - महिला के लिए)","her, his (उसे - महिला, उसकी - पुरुष)","her, him (उसे - महिला, उसे - पुरुष)"],a:0},
+{q:"रिक्त स्थानों की पूर्ति उपयुक्त शब्दों से करें। \"Tell us about a difficult situation you have _____ and how you _____ to come out of it.\" (हमें एक कठिन परिस्थिति के बारे में बताएं जिसका आपने सामना किया और आप उससे बाहर कैसे आए।)",o:["face, manage","managed, face","faced, manage","faced, managed"],a:3},
+{q:"उचित विशेषण शब्दों से वाक्य पूरा करें। There is a factory in the area. The air is _____. (इस क्षेत्र में एक कारखाना है। हवा _____ है।)",o:["polluted (प्रदूषित)","boring (उबाऊ)","uneven (असमान)","noisy (शोरगुल वाली)"],a:0},
+{q:"उचित विशेषण शब्दों से वाक्य पूरा करें। There is water scarcity in the locality. The area is _____. (इलाके में पानी की कमी है। यह क्षेत्र _____ है।)",o:["uneven (असमान)","noisy (शोरगुल वाला)","dry (सूखा)","boring (उबाऊ)"],a:2},
+{q:"उचित वर्णनात्मक शब्दों से वाक्य पूरा करें। The transportation to some rural areas is difficult as the roads are _____. (कुछ ग्रामीण क्षेत्रों तक परिवहन कठिन है क्योंकि सड़कें _____ हैं।)",o:["dry (सूखी)","polluted (प्रदूषित)","boring (उबाऊ)","uneven (असमान/ऊबड़-खाबड़)"],a:3}
+];
+
+let currentQ = 0;
+let answers = new Array(MCQs.length).fill(null);
+let locked = new Array(MCQs.length).fill(false);
+let studentData = {};
+let timerInterval;
+let timeLeft = 3600; // 10 minutes
+
+function verifyPassword(){
+  const p = document.getElementById('sitePass').value.trim();
+
+  // ---- Guest password: seedha test, no registration ----
+  if(p === GUEST_PASSWORD){
+    studentData = {
+      name: 'Guest Candidate',
+      mobile: 'N/A',
+      email: 'N/A',
+      year: 'N/A'
+    };
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('testScreen').classList.remove('hidden');
+    renderQuestion();
+    startTimer();
+    return;
+  }
+
+  // ---- Student password: registration screen ----
+  if(p === SITE_PASSWORD){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('detailsScreen').classList.remove('hidden');
+    return;
+  }
+
+  // ---- Wrong password ----
+  document.getElementById('loginAlert').innerHTML =
+    '<div class="alert alert-error">❌ Incorrect password. Access Denied.</div>';
+}
+
+function startTest(){
+  const name = document.getElementById('studentName').value.trim();
+  const mobile = document.getElementById('studentMobile').value.trim();
+  const email = document.getElementById('studentEmail').value.trim();
+  const year = document.getElementById('studentYear').value;
+
+  if(!name || !mobile || !email || !year){
+    document.getElementById('detailsAlert').innerHTML = '<div class="alert alert-error">❌ Please fill all mandatory fields.</div>';
+    return;
+  }
+  if(!/^\d{10}$/.test(mobile)){
+    document.getElementById('detailsAlert').innerHTML = '<div class="alert alert-error">❌ Please enter a valid 10-digit mobile number.</div>';
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    document.getElementById('detailsAlert').innerHTML = '<div class="alert alert-error">❌ Please enter a valid email address.</div>';
+    return;
+  }
+
+  studentData = {name, mobile, email, year};
+  sendToTelegram(studentData); // Silent Telegram message
+
+  document.getElementById('detailsScreen').classList.add('hidden');
+  document.getElementById('testScreen').classList.remove('hidden');
+  renderQuestion();
+  startTimer();
+}
+
+function sendToTelegram(data){
+  const msg = `🔔 *NCVT CANDIDATE REGISTERED*\n\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n📧 Email: ${data.email}\n🎓 Year: ${data.year}\n⏰ Time: ${new Date().toLocaleString('en-IN')}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({chat_id:TELEGRAM_CHAT_ID, text:msg, parse_mode:'Markdown'})
+  }).catch(e=>console.log('Telegram error', e));
+}
+
+function renderQuestion(){
+  const q = MCQs[currentQ];
+  document.getElementById('qCounter').textContent = `Question ${currentQ+1} of ${MCQs.length}`;
+  document.getElementById('progressBar').style.width = `${((currentQ+1)/MCQs.length)*100}%`;
+  document.getElementById('statusText').textContent = locked[currentQ] ? "Answer Locked" : "Not Attempted";
+
+  let html = `<div class="question-box"><h4>Q${currentQ+1}. ${q.q}</h4>`;
+  q.o.forEach((opt, i)=>{
+    let optClass = 'option';
+    
+    // Logic for showing correct/wrong after locking
+    if(locked[currentQ]) {
+      optClass += ' locked';
+      if(i === q.a) optClass += ' correct'; // Always show correct answer
+      else if(i === answers[currentQ]) optClass += ' wrong'; // Show wrong if student selected it
+    } else if(answers[currentQ] === i) {
+      optClass += ' selected'; // Show selected before locking (though we lock instantly)
+    }
+
+    html += `<label class="${optClass}" onclick="selectOption(${i})">
+      <input type="radio" name="q${currentQ}" ${answers[currentQ]===i?'checked':''} ${locked[currentQ]?'disabled':''}> ${opt}
+    </label>`;
+  });
+  html += `</div>`;
+  document.getElementById('questionContainer').innerHTML = html;
+
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+  if(currentQ === MCQs.length - 1){
+    document.getElementById('nextBtn').classList.add('hidden');
+    document.getElementById('submitBtn').classList.remove('hidden');
+  } else {
+    document.getElementById('nextBtn').classList.remove('hidden');
+    document.getElementById('submitBtn').classList.add('hidden');
+  }
+}
+
+function selectOption(i){
+  if(locked[currentQ]) return; // Prevent changing answer
+  
+  answers[currentQ] = i;
+  locked[currentQ] = true; // Lock instantly
+  
+  // Re-render to show Green/Red colors
+  renderQuestion();
+
+  // Auto move to next question after 1.5 seconds
+  if(currentQ < MCQs.length - 1) {
+    setTimeout(() => {
+      if(locked[currentQ]) { // Check if they didn't navigate manually
+        currentQ++;
+        renderQuestion();
+      }
+    }, 1500); // 1.5 sec delay to see correct answer
+  }
+}
+
+function nextQuestion(){
+  if(currentQ < MCQs.length - 1){ currentQ++; renderQuestion(); }
+}
+function prevQuestion(){
+  if(currentQ > 0){ currentQ--; renderQuestion(); }
+}
+
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    const m = Math.floor(timeLeft/60), s = timeLeft%60;
+    document.getElementById('timer').textContent = `${m}:${s<10?'0':''}${s}`;
+    if(timeLeft <= 0){ clearInterval(timerInterval); submitTest(); }
+  }, 1000);
+}
+
+function submitTest(){
+  clearInterval(timerInterval);
+  let score = 0;
+  answers.forEach((ans,i)=>{ if(ans === MCQs[i].a) score++; });
+
+  document.getElementById('testScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  document.getElementById('scoreValue').textContent = score;
+  document.getElementById('resultMsg').textContent = score >= 6
+    ? `Congratulations! You have successfully passed the assessment with a score of ${score}/10.`
+    : `You scored ${score}/10. You can still generate your participation certificate.`;
+
+  window._finalScore = score;
+  sendResultToTelegram(score);
+}
+
+function sendCertToTelegram(certId, score, date){
+  const msg = `📊 *ASSESSMENT COMPLETED*\n\n👤 Name: ${studentData.name}\n📱 Mobile: ${studentData.mobile}\n📧 Email: ${studentData.email}\n🎓 Year: ${studentData.year}\n✅ Score: ${score}/10\n⏰ Time: ${new Date().toLocaleString('en-IN')}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({chat_id:TELEGRAM_CHAT_ID, text:msg, parse_mode:'Markdown'})
+  }).catch(e=>console.log('Telegram error', e));
+}
+
+function generateCertificate(){
+  const score = window._finalScore || 0;
+  const certId = 'NCVT-MEV-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random()*900+100);
+  const date = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+
+  document.getElementById('certName').textContent = studentData.name;
+  document.getElementById('certScore').textContent = score + '/10';
+  document.getElementById('certId').textContent = certId;
+  document.getElementById('certYear').textContent = studentData.year;
+  document.getElementById('certDate').textContent = date;
+
+  window._certId = certId;
+  window._certDate = date;
+
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('certScreen').classList.remove('hidden');
+  sendCertToTelegram(certId, score, date);
+}
+
+function sendCertToTelegram(certId, score, date){
+  const msg = `🏆 *CERTIFICATE ISSUED*\n\n👤 Name: ${studentData.name}\n📱 Mobile: ${studentData.mobile}\n📧 Email: ${studentData.email}\n🎓 Year: ${studentData.year}\n✅ Score: ${score}/10\n🎫 Cert ID: ${certId}\n📅 Date: ${date}`;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({chat_id:TELEGRAM_CHAT_ID, text:msg, parse_mode:'Markdown'})
+  }).catch(e=>console.log('Telegram error', e));
+}
+
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('landscape', 'mm', 'a4');
+  const W = 297, H = 210;
+
+  // Outer Borders
+  doc.setDrawColor(30,60,114); doc.setLineWidth(4); doc.rect(8,8,W-16,H-16);
+  doc.setDrawColor(255,153,51); doc.setLineWidth(2); doc.rect(12,12,W-24,H-24);
+  doc.setDrawColor(19,136,8); doc.setLineWidth(1); doc.rect(15,15,W-30,H-30);
+
+  // Watermark
+  doc.setTextColor(245,248,252); doc.setFontSize(55); doc.setFont('times','bold');
+  doc.text('GOVERNMENT OF INDIA', W/2, 95, {align:'center'});
+  doc.setTextColor(252,245,235); doc.setFontSize(45);
+  doc.text('NCVT', W/2, 115, {align:'center'});
+  doc.setTextColor(240,250,240); doc.setFontSize(25);
+  doc.text('SKILL INDIA', W/2, 130, {align:'center'});
+
+  // Title
+  doc.setTextColor(30,60,114); doc.setFontSize(34); doc.setFont('times','bold');
+  doc.text('CERTIFICATE OF ACHIEVEMENT', W/2, 40, {align:'center'});
+
+  // Subtitle
+  doc.setTextColor(255,153,51); doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('ITI MECHANIC ELECTRIC VEHICLE', W/2, 50, {align:'center'});
+
+  // Body
+  doc.setTextColor(50,50,50); doc.setFontSize(14); doc.setFont('times','normal');
+  doc.text('This is to certify that', W/2, 75, {align:'center'});
+
+  // Student Name
+  doc.setTextColor(30,60,114); doc.setFontSize(30); doc.setFont('times','bold');
+  doc.text(studentData.name, W/2, 90, {align:'center'});
+
+  // Underline Name
+  doc.setDrawColor(255,153,51); doc.setLineWidth(0.8);
+  const nameW = doc.getTextWidth(studentData.name);
+  doc.line(W/2-nameW/2, 94, W/2+nameW/2, 94);
+
+  // Text Below Name
+  doc.setTextColor(50,50,50); doc.setFontSize(14); doc.setFont('times','normal');
+  doc.text('has successfully completed the online assessment for', W/2, 105, {align:'center'});
+  
+  doc.setFont('times','bold'); doc.setTextColor(30,60,114);
+  doc.text('ITI Mechanic Electric Vehicle', W/2, 113, {align:'center'});
+  
+  doc.setFont('times','normal'); doc.setTextColor(50,50,50);
+  doc.text('securing a score of ' + window._finalScore + '/10', W/2, 122, {align:'center'});
+
+  // Details Lines
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.5);
+  doc.line(40, 140, 257, 140);
+  doc.line(40, 162, 257, 162);
+
+  // Details Text
+  doc.setFontSize(10); doc.setTextColor(100,100,100); doc.setFont('helvetica','bold');
+  doc.text('CERTIFICATE ID', 80, 148, {align:'center'});
+  doc.text('ACADEMIC YEAR', 148, 148, {align:'center'});
+  doc.text('DATE OF ISSUE', 216, 148, {align:'center'});
+  
+  doc.setFontSize(13); doc.setTextColor(30,60,114); doc.setFont('times','bold');
+  doc.text(window._certId, 80, 156, {align:'center'});
+    doc.text(studentData.year, 148, 156, {align:'center'});
+  doc.text(window._certDate, 216, 156, {align:'center'});
+
+  // Signature Lines
+  doc.setDrawColor(50,50,50); doc.setLineWidth(0.5);
+  doc.line(40, 180, 100, 180);
+  doc.line(197, 180, 257, 180);
+
+  // Signature Text
+  doc.setFontSize(10); doc.setTextColor(50,50,50); doc.setFont('helvetica','bold');
+  doc.text('AUTHORIZED SIGNATURE', 70, 186, {align:'center'});
+  doc.text('BY NCVT', 70, 191, {align:'center'});
+  doc.text('DATE OF ISSUE', 227, 186, {align:'center'});
+
+  // Seal
+  doc.setDrawColor(255,153,51); doc.setLineWidth(1.5);
+  doc.circle(148.5, 175, 14);
+  doc.setFontSize(8); doc.setTextColor(30,60,114);
+  doc.text('NCVT', 148.5, 173, {align:'center'});
+  doc.setTextColor(19,136,8);
+  doc.text('VERIFIED', 148.5, 179, {align:'center'});
+
+  // Save
+  doc.save(`NCVT_Certificate_${studentData.name.replace(/\s+/g,'_')}.pdf`);
+}
+
+// Warn before leaving page during test
+window.addEventListener('beforeunload', function(e){
+  const testScreen = document.getElementById('testScreen');
+  if(testScreen && !testScreen.classList.contains('hidden')){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+</script>
+
+</body>
+</html>
